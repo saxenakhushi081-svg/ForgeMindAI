@@ -144,7 +144,7 @@ pnpm --filter @workspace/forge-mind dev
 ![AI Chat](images_forgemind_ai/AI_Chat.png)
 
 ### Compliance Report
-![Compliance Report](images_forgemind_ai/compliance_Page.png)
+![Compliance Report](images_forgemind_ai/compilance_Page.png)
 
 ### Root Cause Analysis
 ![Root Cause Analysis](images_forgemind_ai/Root_Cause_Analysis.png)
