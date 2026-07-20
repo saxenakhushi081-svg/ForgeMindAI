@@ -1,0 +1,2 @@
+- [ForgeMind backend setup](forgemind-backend.md) — Python FastAPI in backend/; asyncpg needs sslmode stripped from DATABASE_URL; read GEMINI_API_KEY at call time not import time.
+- [ForgeMind frontend](forgemind-frontend.md) — React+Vite at artifacts/forge-mind; uses wouter (not react-router-dom); react-dropzone and date-fns installed via pnpm filter.

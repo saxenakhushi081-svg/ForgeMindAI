@@ -1,0 +1,1393 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: ForgeMind AI - Industrial Knowledge Intelligence Platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: dashboard
+    description: Dashboard statistics and activity
+  - name: documents
+    description: Document management
+  - name: chat
+    description: AI Chat interface
+  - name: knowledge-graph
+    description: Knowledge graph extraction and visualization
+  - name: rca
+    description: Root cause analysis
+  - name: compliance
+    description: Compliance checking
+  - name: notifications
+    description: User notifications
+  - name: settings
+    description: User settings
+  - name: admin
+    description: Admin operations
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── AUTH ──────────────────────────────────────────────────────────────────
+  /auth/signup:
+    post:
+      operationId: signUp
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpInput"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenInput"
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordInput"
+      responses:
+        "200":
+          description: Reset email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # ── DASHBOARD ─────────────────────────────────────────────────────────────
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/activity:
+    get:
+      operationId: getDashboardActivity
+      tags: [dashboard]
+      summary: Get recent activity timeline
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Activity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  /dashboard/ai-usage:
+    get:
+      operationId: getDashboardAiUsage
+      tags: [dashboard]
+      summary: Get AI usage statistics
+      responses:
+        "200":
+          description: AI usage stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiUsageStats"
+
+  # ── DOCUMENTS ─────────────────────────────────────────────────────────────
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List all documents
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Document list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentListResponse"
+
+  /documents/upload:
+    post:
+      operationId: uploadDocument
+      tags: [documents]
+      summary: Upload a document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/DocumentUploadInput"
+      responses:
+        "201":
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /documents/search:
+    get:
+      operationId: searchDocuments
+      tags: [documents]
+      summary: Semantic search across documents
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SearchResult"
+
+  /documents/{id}:
+    get:
+      operationId: getDocument
+      tags: [documents]
+      summary: Get a document by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /documents/{id}/reprocess:
+    post:
+      operationId: reprocessDocument
+      tags: [documents]
+      summary: Reprocess document embeddings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reprocessing started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ── CHAT ──────────────────────────────────────────────────────────────────
+  /chat/sessions:
+    get:
+      operationId: listChatSessions
+      tags: [chat]
+      summary: List all chat sessions
+      responses:
+        "200":
+          description: Chat sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatSession"
+    post:
+      operationId: createChatSession
+      tags: [chat]
+      summary: Create a new chat session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatSessionInput"
+      responses:
+        "201":
+          description: Chat session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatSession"
+
+  /chat/sessions/{id}:
+    get:
+      operationId: getChatSession
+      tags: [chat]
+      summary: Get a chat session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatSession"
+    delete:
+      operationId: deleteChatSession
+      tags: [chat]
+      summary: Delete a chat session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /chat/sessions/{id}/messages:
+    get:
+      operationId: getChatMessages
+      tags: [chat]
+      summary: Get messages in a chat session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Messages list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a message to the AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMessageInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatMessage"
+
+  /chat/sessions/{id}/export:
+    post:
+      operationId: exportChatSession
+      tags: [chat]
+      summary: Export chat session to text/PDF
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Export URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResponse"
+
+  /chat/suggested-questions:
+    get:
+      operationId: getSuggestedQuestions
+      tags: [chat]
+      summary: Get suggested questions based on uploaded documents
+      responses:
+        "200":
+          description: Suggested questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  # ── KNOWLEDGE GRAPH ───────────────────────────────────────────────────────
+  /knowledge-graph:
+    get:
+      operationId: getKnowledgeGraph
+      tags: [knowledge-graph]
+      summary: Get the full knowledge graph
+      responses:
+        "200":
+          description: Knowledge graph data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGraph"
+
+  /knowledge-graph/extract:
+    post:
+      operationId: extractKnowledgeGraph
+      tags: [knowledge-graph]
+      summary: Trigger re-extraction of knowledge graph from documents
+      responses:
+        "200":
+          description: Extraction started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /knowledge-graph/entities:
+    get:
+      operationId: listKnowledgeEntities
+      tags: [knowledge-graph]
+      summary: List all extracted entities
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [machine, engineer, department, equipment, safety_rule, inspection]
+      responses:
+        "200":
+          description: Entity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KnowledgeEntity"
+
+  # ── ROOT CAUSE ANALYSIS ───────────────────────────────────────────────────
+  /rca/analyze:
+    post:
+      operationId: analyzeRootCause
+      tags: [rca]
+      summary: Run root cause analysis on a failure or issue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RcaInput"
+      responses:
+        "200":
+          description: RCA result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RcaReport"
+
+  /rca/history:
+    get:
+      operationId: getRcaHistory
+      tags: [rca]
+      summary: Get RCA history
+      responses:
+        "200":
+          description: RCA history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RcaReport"
+
+  /rca/{id}:
+    get:
+      operationId: getRcaReport
+      tags: [rca]
+      summary: Get a specific RCA report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: RCA report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RcaReport"
+
+  # ── COMPLIANCE ────────────────────────────────────────────────────────────
+  /compliance/reports:
+    get:
+      operationId: listComplianceReports
+      tags: [compliance]
+      summary: List compliance reports
+      responses:
+        "200":
+          description: Compliance reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceReport"
+
+  /compliance/check:
+    post:
+      operationId: runComplianceCheck
+      tags: [compliance]
+      summary: Run a compliance check against uploaded standards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplianceCheckInput"
+      responses:
+        "200":
+          description: Compliance check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceReport"
+
+  /compliance/reports/{id}:
+    get:
+      operationId: getComplianceReport
+      tags: [compliance]
+      summary: Get a compliance report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Compliance report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceReport"
+    delete:
+      operationId: deleteComplianceReport
+      tags: [compliance]
+      summary: Delete a compliance report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ── NOTIFICATIONS ─────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: Get user notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    put:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    put:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: All marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ── SETTINGS ──────────────────────────────────────────────────────────────
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get user settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettings"
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update user settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettings"
+
+  # ── ADMIN ─────────────────────────────────────────────────────────────────
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: Admin - list all users
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/users/{id}:
+    delete:
+      operationId: adminDeleteUser
+      tags: [admin]
+      summary: Admin - delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/analytics:
+    get:
+      operationId: adminGetAnalytics
+      tags: [admin]
+      summary: Admin - platform analytics
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnalytics"
+
+  /admin/documents:
+    get:
+      operationId: adminListDocuments
+      tags: [admin]
+      summary: Admin - list all documents across users
+      responses:
+        "200":
+          description: All documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    # ── AUTH SCHEMAS ─────────────────────────────────────────────────────────
+    SignUpInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+
+        password:
+          type: string
+          minLength: 6
+        company:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+
+        password:
+          type: string
+
+    RefreshTokenInput:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+
+    ForgotPasswordInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+
+
+    AuthResponse:
+      type: object
+      required: [access_token, user]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    User:
+      type: object
+      required: [id, email, name, role, created_at]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        company:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [admin, user]
+        avatar_url:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+
+    # ── DASHBOARD SCHEMAS ─────────────────────────────────────────────────────
+    DashboardStats:
+      type: object
+      required: [total_documents, total_machines, total_reports, compliance_score, pending_inspections, ai_queries_today]
+      properties:
+        total_documents:
+          type: integer
+        total_machines:
+          type: integer
+        total_reports:
+          type: integer
+        compliance_score:
+          type: number
+        pending_inspections:
+          type: integer
+        ai_queries_today:
+          type: integer
+        document_growth:
+          type: number
+        compliance_change:
+          type: number
+
+    ActivityItem:
+      type: object
+      required: [id, type, title, description, created_at]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [upload, query, rca, compliance, alert]
+        title:
+          type: string
+        description:
+          type: string
+        user_name:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+
+    AiUsageStats:
+      type: object
+      required: [total_queries, queries_this_week, top_topics, daily_usage]
+      properties:
+        total_queries:
+          type: integer
+        queries_this_week:
+          type: integer
+        top_topics:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopicStat"
+        daily_usage:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyUsage"
+
+    TopicStat:
+      type: object
+      required: [topic, count]
+      properties:
+        topic:
+          type: string
+        count:
+          type: integer
+
+    DailyUsage:
+      type: object
+      required: [date, count]
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+
+    # ── DOCUMENT SCHEMAS ──────────────────────────────────────────────────────
+    Document:
+      type: object
+      required: [id, filename, file_type, size, status, created_at, category]
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        original_filename:
+          type: string
+        file_type:
+          type: string
+          enum: [pdf, docx, txt, xlsx, csv]
+        size:
+          type: integer
+        status:
+          type: string
+          enum: [processing, ready, error, ocr_needed]
+        category:
+          type: ["string", "null"]
+        extracted_text_preview:
+          type: ["string", "null"]
+        page_count:
+          type: ["integer", "null"]
+        machine_ids:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type: ["string", "null"]
+          format: date-time
+
+    DocumentUploadInput:
+      type: object
+      required: [file]
+      properties:
+        file:
+          type: string
+
+        category:
+          type: string
+
+    DocumentListResponse:
+      type: object
+      required: [items, total, page, limit]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    SearchResult:
+      type: object
+      required: [document_id, filename, chunk_text, score]
+      properties:
+        document_id:
+          type: string
+        filename:
+          type: string
+        chunk_text:
+          type: string
+        score:
+          type: number
+        page_number:
+          type: ["integer", "null"]
+
+    # ── CHAT SCHEMAS ─────────────────────────────────────────────────────────
+    ChatSession:
+      type: object
+      required: [id, title, created_at, message_count]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+        last_message:
+          type: ["string", "null"]
+
+    ChatSessionInput:
+      type: object
+      properties:
+        title:
+          type: string
+
+    ChatMessage:
+      type: object
+      required: [id, session_id, role, content, created_at]
+      properties:
+        id:
+          type: string
+        session_id:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessageSource"
+        confidence_score:
+          type: ["number", "null"]
+        created_at:
+          type: string
+          format: date-time
+
+    MessageSource:
+      type: object
+      required: [document_id, filename, excerpt]
+      properties:
+        document_id:
+          type: string
+        filename:
+          type: string
+        excerpt:
+          type: string
+        page_number:
+          type: ["integer", "null"]
+
+    ChatMessageInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+        language:
+          type: string
+          enum: [en, hi]
+          default: en
+
+    ExportResponse:
+      type: object
+      required: [export_text]
+      properties:
+        export_text:
+          type: string
+        filename:
+          type: string
+
+    # ── KNOWLEDGE GRAPH SCHEMAS ──────────────────────────────────────────────
+    KnowledgeGraph:
+      type: object
+      required: [nodes, edges]
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeEdge"
+
+    KnowledgeNode:
+      type: object
+      required: [id, label, type]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [machine, engineer, department, equipment, safety_rule, inspection, maintenance]
+        properties:
+          type: object
+          additionalProperties: true
+        document_ids:
+          type: array
+          items:
+            type: string
+
+    KnowledgeEdge:
+      type: object
+      required: [id, source, target, relationship]
+      properties:
+        id:
+          type: string
+        source:
+          type: string
+        target:
+          type: string
+        relationship:
+          type: string
+        weight:
+          type: number
+
+    KnowledgeEntity:
+      type: object
+      required: [id, label, type, mention_count]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        mention_count:
+          type: integer
+        first_seen:
+          type: string
+          format: date-time
+
+    # ── RCA SCHEMAS ──────────────────────────────────────────────────────────
+    RcaInput:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        machine_id:
+          type: ["string", "null"]
+        document_ids:
+          type: array
+          items:
+            type: string
+
+    RcaReport:
+      type: object
+      required: [id, query, summary, root_causes, recommendations, created_at]
+      properties:
+        id:
+          type: string
+        query:
+          type: string
+        machine_id:
+          type: ["string", "null"]
+        summary:
+          type: string
+        root_causes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RootCause"
+        recommendations:
+          type: array
+          items:
+            type: string
+        similar_incidents:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimilarIncident"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessageSource"
+        created_at:
+          type: string
+          format: date-time
+
+    RootCause:
+      type: object
+      required: [cause, confidence, category]
+      properties:
+        cause:
+          type: string
+        confidence:
+          type: number
+        category:
+          type: string
+          enum: [mechanical, electrical, operational, environmental, human_error]
+
+    SimilarIncident:
+      type: object
+      required: [description, date, resolution]
+      properties:
+        description:
+          type: string
+        date:
+          type: ["string", "null"]
+        resolution:
+          type: string
+
+    # ── COMPLIANCE SCHEMAS ────────────────────────────────────────────────────
+    ComplianceCheckInput:
+      type: object
+      required: [standard_document_ids, company_document_ids]
+      properties:
+        standard_document_ids:
+          type: array
+          items:
+            type: string
+        company_document_ids:
+          type: array
+          items:
+            type: string
+        standard_type:
+          type: string
+          enum: [factory_act, oisd, iso, custom]
+
+    ComplianceReport:
+      type: object
+      required: [id, score, status, gaps, created_at]
+      properties:
+        id:
+          type: string
+        standard_type:
+          type: ["string", "null"]
+        score:
+          type: number
+        status:
+          type: string
+          enum: [compliant, partial, non_compliant]
+        gaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ComplianceGap"
+        recommendations:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ComplianceGap:
+      type: object
+      required: [section, description, severity]
+      properties:
+        section:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        reference:
+          type: ["string", "null"]
+
+    # ── NOTIFICATION SCHEMAS ──────────────────────────────────────────────────
+    Notification:
+      type: object
+      required: [id, type, title, message, is_read, created_at]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [upload, compliance_alert, maintenance_alert, system, rca]
+        title:
+          type: string
+        message:
+          type: string
+        is_read:
+          type: boolean
+        link:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+
+    # ── SETTINGS SCHEMAS ──────────────────────────────────────────────────────
+    UserSettings:
+      type: object
+      required: [theme, language, notifications_enabled, email_alerts]
+      properties:
+        theme:
+          type: string
+          enum: [dark, light, system]
+        language:
+          type: string
+          enum: [en, hi]
+        notifications_enabled:
+          type: boolean
+        email_alerts:
+          type: boolean
+        gemini_api_key:
+          type: ["string", "null"]
+        two_factor_enabled:
+          type: boolean
+
+    UserSettingsInput:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [dark, light, system]
+        language:
+          type: string
+          enum: [en, hi]
+        notifications_enabled:
+          type: boolean
+        email_alerts:
+          type: boolean
+        gemini_api_key:
+          type: ["string", "null"]
+
+    # ── ADMIN SCHEMAS ─────────────────────────────────────────────────────────
+    AdminAnalytics:
+      type: object
+      required: [total_users, total_documents, total_queries, storage_used_mb, daily_signups, document_categories]
+      properties:
+        total_users:
+          type: integer
+        total_documents:
+          type: integer
+        total_queries:
+          type: integer
+        storage_used_mb:
+          type: number
+        daily_signups:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyUsage"
+        document_categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopicStat"

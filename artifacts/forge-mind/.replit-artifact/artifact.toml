@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "ForgeMind AI"
+version = "1.0.0"
+id = "artifacts/forge-mind"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22910
+
+[services.development]
+run = "pnpm --filter @workspace/forge-mind run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/forge-mind", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/forge-mind/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22910"
+BASE_PATH = "/"
